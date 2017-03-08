@@ -2,6 +2,7 @@ package com.taotao.portal.controller;
 
 import com.taotao.portal.service.ContentService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -26,10 +27,11 @@ public class IndexColler {
     }
 
 
-
-    @RequestMapping(value = "/httpclient/post",method = RequestMethod.POST )
+    @RequestMapping(value = "/httpclient/post", method = RequestMethod.POST, produces = MediaType.TEXT_PLAIN_VALUE + ";charset=utf-8")
     @ResponseBody
-    public String testPost(String username,String password){
-        return  "username:"+username+"password"+password;
+    public String testPost(String username, String password) {
+        String result = "username:" + username + "password" + password;
+        System.out.println(result);
+        return "{username:" + username + ",password:" + password+"}";
     }
 }

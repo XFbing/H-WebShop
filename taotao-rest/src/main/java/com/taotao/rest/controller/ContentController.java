@@ -15,8 +15,8 @@ import java.util.List;
 /**
  * Created by h on 2017-03-04.
  */
-@RequestMapping("/content")
 @Controller
+@RequestMapping("/content")
 public class ContentController {
 
     @Autowired

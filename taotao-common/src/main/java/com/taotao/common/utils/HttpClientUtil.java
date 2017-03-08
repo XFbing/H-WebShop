@@ -63,7 +63,7 @@ public class HttpClientUtil {
 	}
 
 	public static String doGet(String url) {
-		return doGet(url, null);
+		return doGet(url,null);
 	}
 
 	public static String doPost(String url, Map<String, String> param) {

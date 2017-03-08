@@ -1,12 +1,17 @@
 package com.taotao.rest.service.impl;
 
+import com.taotao.common.utils.JsonUtils;
 import com.taotao.mapper.TbItemCatMapper;
+import com.taotao.pojo.TbContent;
 import com.taotao.pojo.TbItemCat;
 import com.taotao.pojo.TbItemCatExample;
+import com.taotao.rest.dao.JedisClient;
 import com.taotao.rest.pojo.CatNode;
 import com.taotao.rest.pojo.CatResult;
 import com.taotao.rest.service.ItemCatRestService;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -19,6 +24,12 @@ import java.util.List;
 public class ItemCatRestServiceImpl implements ItemCatRestService {
     @Autowired
     private TbItemCatMapper itemCatMapper;
+
+    @Autowired
+    private JedisClient jedisClient;
+
+    @Value("{INDEX_ITEMCAT_REDIS_KEY}")
+    private String INDEX_ITEMCAT_REDIS_KEY;
 
     @Override
     public CatResult getItemCatList() {
@@ -37,6 +48,20 @@ public class ItemCatRestServiceImpl implements ItemCatRestService {
      * @return
      */
     private List<?> getCatList(long parentId) {
+        //从缓存中取内容
+        try {
+            String result=  jedisClient.hget(INDEX_ITEMCAT_REDIS_KEY,parentId+"");
+            if(!StringUtils.isBlank(result)){
+                //把字符串转成list
+                List<TbItemCat> resultList=  JsonUtils.jsonToList(result,TbItemCat.class);
+                return resultList;
+            }
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+
+
+
         //创建查询条件
         TbItemCatExample example = new TbItemCatExample();
         TbItemCatExample.Criteria criteria = example.createCriteria();
@@ -69,6 +94,16 @@ public class ItemCatRestServiceImpl implements ItemCatRestService {
             } else {
                 resultList.add("/products/"+tbItemCat.getId()+".html|" + tbItemCat.getName());
             }
+        }
+
+        //向缓存中添加内容
+        try {
+            //把list转换成字符串
+            String cacheString = JsonUtils.objectToJson(list);
+            jedisClient.hset("INDEX_ITEMCAT_REDIS_KEY", parentId+"", cacheString);
+
+        }catch (Exception e){
+            e.printStackTrace();
         }
         return resultList;
     }
